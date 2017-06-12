@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <script src="https://unpkg.com/react@15/dist/react.min.js"></script>
+    <script src="https://unpkg.com/react-dom@15/dist/react-dom.min.js"></script>
+    <script type="text/javascript">
+      var chart;
+      var volChart;
+      var stockData = '{{ dataPass }}'.split("],");
+      finalArr = []
+      for (i = 200; i < stockData.length; i++) {
+        temp = stockData[i].split(",")
+        finalArr.push([temp[0].slice(2),parseFloat(temp[1]),parseFloat(temp[2]),parseFloat(temp[3]),parseFloat(temp[4]),parseFloat(temp[6]),parseFloat(temp[5])])
+      }
+
+      googleArr = []
+      volArr = []
+      vizLength = 75
+      for (i = 0; i < vizLength; i++) {
+        googleArr.push(finalArr[i].slice(0,6))
+        volArr.push([i,finalArr[i][6]])
+      }
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+      google.charts.setOnLoadCallback(drawVolChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable(googleArr, true);
+
+        var options = {
+          legend: 'none',
+          width: 700,
+          height: 400,
+          candlestick: {
+            fallingColor: { strokeWidth: 0, fill: '#a52714' }, // red
+            risingColor: { strokeWidth: 0, fill: '#0f9d58' }   // green
+          },
+          hAxis: { textPosition: 'none' },
+          seriesType: 'candlesticks',
+          series: {1: {type: 'line'}},
+          lineWidth: 1,
+          colors:['black','blue'],
+          theme:'maximized'
+        };
+
+        chart = new google.visualization.ComboChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+
+      function drawVolChart() {
+        var data = google.visualization.arrayToDataTable(volArr, true);
+
+        var options = {
+        width: 700,
+        height: 175,
+        bar: {groupWidth: "50%"},
+        legend: { position: "none" },
+        theme: 'maximized'
+        };
+
+        volChart = new google.visualization.ColumnChart(document.getElementById('chart_div_vol'));
+        volChart.draw(data, options);
+      }
+
+      function nextDay() {
+        if(vizLength!=finalArr.length) {
+          googleArr = googleArr.slice(1);
+          volArr = volArr.slice(1)
+          googleArr.push(finalArr[vizLength].slice(0,6));
+          volArr.push([vizLength,finalArr[vizLength][6]]);
+          vizLength = vizLength + 1;
+          drawChart();
+          drawVolChart();
+        } else {
+          alert("End of Chart!")
+          location.reload()
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <br><br>
+    <center><div id="chart_div" style="width: 700px; height: 400px;"></div>
+    <center><div id="chart_div_vol" style="width: 700px; height: 175px;"></div>
+    <br><button onclick="nextDay()">Next Day</button>
+    <button onclick="location.reload()">Next Chart</button>
+
+  </body>
+</html>
